@@ -31,6 +31,26 @@ class PlayerPoint
   end
 end
 
+class GameState < Struct.new(:point1, :point2)
+  # STATES = [:draw, :deuce, :in_progress, :win]
+
+  def point_diff
+    (point1 - point2).abs
+  end
+
+  def point_max
+    [point1, point2].max
+  end
+
+  def current
+    return :draw if point_diff == 0 && point_max <= 2
+    return :deuce if point_diff == 0 && point_max >= 3
+    return :in_progress if point_diff.between?(1, 3) && point_max <= 3
+    return :advantage if point_diff == 1 && point_max >= 3
+    return :win if point_diff >= 2 && point_max >= 4
+  end
+end
+
 class TennisGame1
   def initialize(player1_name, player2_name)
     @player1 = Player.new(name: player1_name)
@@ -48,14 +68,15 @@ class TennisGame1
 
   def score
     result = ""
-    tempScore=0
-    if (p1points==p2points)
+    game_state = GameState.new(p1points, p2points)
+
+    if game_state.current == :deuce or game_state.current == :draw
       result = {
           0 => "Love-All",
           1 => "Fifteen-All",
           2 => "Thirty-All",
       }.fetch(p1points, "Deuce")
-    elsif (p1points>=4 or p2points>=4)
+    elsif game_state.current == :advantage or game_state.current == :win
       minusResult = p1points-p2points
       if (minusResult==1)
         result ="Advantage " + player1.name
@@ -66,7 +87,7 @@ class TennisGame1
       else
         result ="Win for " + player2.name
       end
-    else
+    elsif game_state.current == :in_progress
       (1...3).each do |i|
         if (i==1)
           tempScore = p1points
