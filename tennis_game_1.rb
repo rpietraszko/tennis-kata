@@ -44,8 +44,6 @@ class PlayerPoint
 end
 
 class GameState < Struct.new(:point1, :point2)
-  # STATES = [:draw, :deuce, :in_progress, :win]
-
   def point_diff
     (point1 - point2).abs
   end
@@ -112,14 +110,6 @@ class GameResult < Struct.new(:player1, :player2, :game_state)
     }.fetch(game_state.current)
   end
 
-  def p1points
-    player1.points.to_i
-  end
-
-  def p2points
-    player2.points.to_i
-  end
-
   def winner_name
     return if player1.points == player2.points
 
@@ -131,7 +121,6 @@ class TennisGame1
   def initialize(player1_name, player2_name)
     @player1 = Player.new(name: player1_name)
     @player2 = Player.new(name: player2_name)
-    @p1points, @p2points = @player1.points.to_i, @player2.points.to_i
   end
 
   def won_point(player_name)
