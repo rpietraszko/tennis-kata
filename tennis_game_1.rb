@@ -63,46 +63,54 @@ class GameState < Struct.new(:point1, :point2)
   end
 end
 
-class GameResult < Struct.new(:player1, :player2, :game_state)
-  class DrawResult < Struct.new(:player1, :player2)
-    def to_s
-      [player1.points.to_s, 'All'].join('-')
-    end
-  end
-
-  class DeuceResult < Struct.new(:player1, :player2)
-    def to_s
-      'Deuce'
-    end
-  end
-
-  class InProgressResult < Struct.new(:player1, :player2)
-    def to_s
-      [player1.points.to_s, player2.points.to_s].join('-')
-    end
-  end
-
-  class AdvantageResult < Struct.new(:player1, :player2, :winner_name)
-    def to_s
-      ['Advantage', winner_name].join(' ')
-    end
-  end
-
-  class WinResult < Struct.new(:player1, :player2, :winner_name)
-    def to_s
-      ['Win for', winner_name].join(' ')
-    end
-  end
-
+class DrawResult < Struct.new(:player1, :player2, :winner_name)
   def to_s
-    return DrawResult.new(player1, player2).to_s if game_state.current == :draw
-    return DeuceResult.new(player1, player2).to_s if game_state.current == :deuce
-    return InProgressResult.new(player1, player2).to_s if game_state.current == :in_progress
-    return AdvantageResult.new(player1, player2, winner_name).to_s if game_state.current == :advantage
-    return WinResult.new(player1, player2, winner_name).to_s if game_state.current == :win
+    [player1.points.to_s, 'All'].join('-')
+  end
+end
+
+class DeuceResult < Struct.new(:player1, :player2, :winner_name)
+  def to_s
+    'Deuce'
+  end
+end
+
+class InProgressResult < Struct.new(:player1, :player2, :winner_name)
+  def to_s
+    [player1.points.to_s, player2.points.to_s].join('-')
+  end
+end
+
+class AdvantageResult < Struct.new(:player1, :player2, :winner_name)
+  def to_s
+    ['Advantage', winner_name].join(' ')
+  end
+end
+
+class WinResult < Struct.new(:player1, :player2, :winner_name)
+  def to_s
+    ['Win for', winner_name].join(' ')
+  end
+end
+
+class GameResult < Struct.new(:player1, :player2, :game_state)
+  def to_s
+    result_klass_for
+      .new(player1, player2, winner_name)
+      .to_s
   end
 
   private
+
+  def result_klass_for
+    {
+      draw: DrawResult,
+      deuce: DeuceResult,
+      in_progress: InProgressResult,
+      advantage: AdvantageResult,
+      win: WinResult,
+    }.fetch(game_state.current)
+  end
 
   def p1points
     player1.points.to_i
