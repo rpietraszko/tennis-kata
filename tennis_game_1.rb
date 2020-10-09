@@ -117,18 +117,37 @@ class GameResult < Struct.new(:player1, :player2, :game_state)
   end
 end
 
+class PlayerRepository
+  def initialize
+    @store = {}
+  end
+
+  def write(*players)
+    players.each do |player|
+      store[player.name] ||= player
+    end
+  end
+
+  def find_by(name:)
+    store.fetch(name)
+  end
+
+  private
+
+  attr_reader :store
+end
+
 class TennisGame1
   def initialize(player1_name, player2_name)
     @player1 = Player.new(name: player1_name)
     @player2 = Player.new(name: player2_name)
+    @player_repository =
+      PlayerRepository.new.tap { |repo| repo.write(player1, player2) }
   end
 
   def won_point(player_name)
-    if player_name == @player1.name
-      @player1.add_point
-    else
-      @player2.add_point
-    end
+    scorer = player_repository.find_by(name: player_name)
+    scorer.add_point
   end
 
   def score
@@ -138,5 +157,5 @@ class TennisGame1
 
   private
 
-  attr_reader :player1, :player2
+  attr_reader :player1, :player2, :player_repository
 end
