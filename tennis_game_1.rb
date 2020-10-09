@@ -29,6 +29,10 @@ class PlayerPoint
   def to_i
     @current_point
   end
+
+  private
+
+  attr_reader :current_point
 end
 
 class GameState < Struct.new(:point1, :point2)
@@ -52,15 +56,24 @@ class GameState < Struct.new(:point1, :point2)
 end
 
 class GameResult < Struct.new(:player1, :player2, :game_state)
+  class DrawResult < Struct.new(:player1, :player2)
+    def to_s
+      [player1.points.to_s, 'All'].join('-')
+    end
+  end
+
+  class DeuceResult < Struct.new(:player1, :player2)
+    def to_s
+      'Deuce'
+    end
+  end
+
   def to_s
     result = ''
-    if game_state.current == :deuce or game_state.current == :draw
-      result = {
-          0 => "Love-All",
-          1 => "Fifteen-All",
-          2 => "Thirty-All",
-      }.fetch(p1points, "Deuce")
-    elsif game_state.current == :advantage or game_state.current == :win
+    return DrawResult.new(player1, player2).to_s if game_state.current == :draw
+    return DeuceResult.new(player1, player2).to_s if game_state.current == :deuce
+
+    if game_state.current == :advantage or game_state.current == :win
       minusResult = p1points-p2points
       if (minusResult==1)
         result ="Advantage " + player1.name
