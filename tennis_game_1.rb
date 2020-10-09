@@ -51,25 +51,9 @@ class GameState < Struct.new(:point1, :point2)
   end
 end
 
-class TennisGame1
-  def initialize(player1_name, player2_name)
-    @player1 = Player.new(name: player1_name)
-    @player2 = Player.new(name: player2_name)
-    @p1points, @p2points = @player1.points.to_i, @player2.points.to_i
-  end
-
-  def won_point(player_name)
-    if player_name == @player1.name
-      @player1.add_point
-    else
-      @player2.add_point
-    end
-  end
-
-  def score
-    result = ""
-    game_state = GameState.new(p1points, p2points)
-
+class GameResult < Struct.new(:player1, :player2, :game_state)
+  def to_s
+    result = ''
     if game_state.current == :deuce or game_state.current == :draw
       result = {
           0 => "Love-All",
@@ -108,8 +92,6 @@ class TennisGame1
 
   private
 
-  attr_reader :player1, :player2
-
   def p1points
     player1.points.to_i
   end
@@ -117,4 +99,29 @@ class TennisGame1
   def p2points
     player2.points.to_i
   end
+end
+
+class TennisGame1
+  def initialize(player1_name, player2_name)
+    @player1 = Player.new(name: player1_name)
+    @player2 = Player.new(name: player2_name)
+    @p1points, @p2points = @player1.points.to_i, @player2.points.to_i
+  end
+
+  def won_point(player_name)
+    if player_name == @player1.name
+      @player1.add_point
+    else
+      @player2.add_point
+    end
+  end
+
+  def score
+    game_state = GameState.new(player1.points.to_i, player2.points.to_i)
+    GameResult.new(player1, player2, game_state).to_s
+  end
+
+  private
+
+  attr_reader :player1, :player2
 end
