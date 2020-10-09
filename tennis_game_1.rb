@@ -37,6 +37,10 @@ class PlayerPoint
   def to_i
     amount
   end
+
+  def ==(other_points)
+    amount == other_points.amount
+  end
 end
 
 class GameState < Struct.new(:point1, :point2)
@@ -78,15 +82,15 @@ class GameResult < Struct.new(:player1, :player2, :game_state)
     end
   end
 
-  class AdvantageResult < Struct.new(:player1, :player2)
+  class AdvantageResult < Struct.new(:player1, :player2, :winner_name)
     def to_s
-      ['Advantage', [player1, player2].max.name].join(' ')
+      ['Advantage', winner_name].join(' ')
     end
   end
 
-  class WinResult < Struct.new(:player1, :player2)
+  class WinResult < Struct.new(:player1, :player2, :winner_name)
     def to_s
-      ['Win for', [player1, player2].max.name].join(' ')
+      ['Win for', winner_name].join(' ')
     end
   end
 
@@ -94,8 +98,8 @@ class GameResult < Struct.new(:player1, :player2, :game_state)
     return DrawResult.new(player1, player2).to_s if game_state.current == :draw
     return DeuceResult.new(player1, player2).to_s if game_state.current == :deuce
     return InProgressResult.new(player1, player2).to_s if game_state.current == :in_progress
-    return AdvantageResult.new(player1, player2).to_s if game_state.current == :advantage
-    return WinResult.new(player1, player2).to_s if game_state.current == :win
+    return AdvantageResult.new(player1, player2, winner_name).to_s if game_state.current == :advantage
+    return WinResult.new(player1, player2, winner_name).to_s if game_state.current == :win
   end
 
   private
@@ -106,6 +110,12 @@ class GameResult < Struct.new(:player1, :player2, :game_state)
 
   def p2points
     player2.points.to_i
+  end
+
+  def winner_name
+    return if player1.points == player2.points
+
+    [player1, player2].max.name
   end
 end
 
