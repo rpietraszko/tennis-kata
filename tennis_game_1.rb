@@ -68,10 +68,17 @@ class GameResult < Struct.new(:player1, :player2, :game_state)
     end
   end
 
+  class InProgressResult < Struct.new(:player1, :player2)
+    def to_s
+      [player1.points.to_s, player2.points.to_s].join('-')
+    end
+  end
+
   def to_s
     result = ''
     return DrawResult.new(player1, player2).to_s if game_state.current == :draw
     return DeuceResult.new(player1, player2).to_s if game_state.current == :deuce
+    return InProgressResult.new(player1, player2).to_s if game_state.current == :in_progress
 
     if game_state.current == :advantage or game_state.current == :win
       minusResult = p1points-p2points
@@ -83,21 +90,6 @@ class GameResult < Struct.new(:player1, :player2, :game_state)
         result = "Win for " + player1.name
       else
         result ="Win for " + player2.name
-      end
-    elsif game_state.current == :in_progress
-      (1...3).each do |i|
-        if (i==1)
-          tempScore = p1points
-        else
-          result+="-"
-          tempScore = p2points
-        end
-        result += {
-            0 => "Love",
-            1 => "Fifteen",
-            2 => "Thirty",
-            3 => "Forty",
-        }[tempScore]
       end
     end
     result
