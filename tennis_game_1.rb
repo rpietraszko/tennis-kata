@@ -1,4 +1,6 @@
 class Player
+  include Comparable
+
   attr_reader :name, :points
 
   def initialize(name:, points: PlayerPoint.new)
@@ -9,30 +11,32 @@ class Player
   def add_point
     points.add
   end
+
+  def <=>(other_player)
+    points.amount <=> other_player.points.amount
+  end
 end
 
 class PlayerPoint
+  attr_reader :amount
+
   POINTS = %w[Love Fifteen Thirty Forty].freeze
 
   def initialize
-    @current_point = 0
+    @amount = 0
   end
 
   def add
-    @current_point += 1
+    @amount += 1
   end
 
   def to_s
-    POINTS[current_point]
+    POINTS[amount]
   end
 
   def to_i
-    @current_point
+    amount
   end
-
-  private
-
-  attr_reader :current_point
 end
 
 class GameState < Struct.new(:point1, :point2)
@@ -74,25 +78,24 @@ class GameResult < Struct.new(:player1, :player2, :game_state)
     end
   end
 
+  class AdvantageResult < Struct.new(:player1, :player2)
+    def to_s
+      ['Advantage', [player1, player2].max.name].join(' ')
+    end
+  end
+
+  class WinResult < Struct.new(:player1, :player2)
+    def to_s
+      ['Win for', [player1, player2].max.name].join(' ')
+    end
+  end
+
   def to_s
-    result = ''
     return DrawResult.new(player1, player2).to_s if game_state.current == :draw
     return DeuceResult.new(player1, player2).to_s if game_state.current == :deuce
     return InProgressResult.new(player1, player2).to_s if game_state.current == :in_progress
-
-    if game_state.current == :advantage or game_state.current == :win
-      minusResult = p1points-p2points
-      if (minusResult==1)
-        result ="Advantage " + player1.name
-      elsif (minusResult ==-1)
-        result ="Advantage " + player2.name
-      elsif (minusResult>=2)
-        result = "Win for " + player1.name
-      else
-        result ="Win for " + player2.name
-      end
-    end
-    result
+    return AdvantageResult.new(player1, player2).to_s if game_state.current == :advantage
+    return WinResult.new(player1, player2).to_s if game_state.current == :win
   end
 
   private
